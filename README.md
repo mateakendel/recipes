@@ -40,5 +40,5 @@ docker compose exec recepti_app python -m scripts.train_model
 ```
 
 ## Autor
-Moira Grozdanić
+Moira Grozdanić,
 Matea Kenđel
