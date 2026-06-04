@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Recipes MVP – Sustav za razmjenu i pretraživanje recepata
 
 ## Opis projekta
@@ -159,3 +160,6 @@ Aplikacija se pokreće lokalno pomoću Dockera:
 
 ```bash
 docker compose up --build
+=======
+# recipes
+>>>>>>> f8a61f72087ac4db06eef5e37f6b04256f183d0e
