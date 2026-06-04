@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <div class="page auth-page">
+
+        <div class="auth-card">
+            <h1>Recipes</h1>
+            <h3>Create account</h3>
+
+            <input id="username" placeholder="Username">
+            <input id="password" type="password" placeholder="Password">
+
+            <button class="primary full" onclick="register()">Register</button>
+
+            <p id="msg" class="auth-message"></p>
+
+            <p class="auth-link">
+                Already have an account?
+                <a href="/login-page">Login</a>
+            </p>
+
+            <p class="auth-link">
+                <a href="/">Back to main page</a>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function register() {
+            fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: document.getElementById("username").value,
+                    password: document.getElementById("password").value
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("msg").innerText = data.message;
+                    if (data.message === "User created") {
+                        setTimeout(() => window.location.href = "/", 1000);
+                    }
+                });
+        }
+    </script>
+
+</body>
+
+</html>

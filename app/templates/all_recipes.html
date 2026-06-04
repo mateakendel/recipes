@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Recipes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="page">
+
+    <header class="page-header">
+        <h1>All published recipes</h1>
+        <a class="back-link" href="/home">Back to my home</a>
+    </header>
+
+    <section class="results">
+        <h2>Recommended for you</h2>
+        <p class="section-description">
+            These recipes are predicted by the trained Naive Bayes model based on your ratings and recipe content.
+        </p>
+
+        <div class="carousel-wrapper">
+            <button class="carousel-btn left" onclick="scrollCarousel('recommendations-carousel', -1)">‹</button>
+
+            <div id="recommendations-carousel" class="recipe-carousel">
+                <em>Loading recommendations...</em>
+            </div>
+
+            <button class="carousel-btn right" onclick="scrollCarousel('recommendations-carousel', 1)">›</button>
+        </div>
+    </section>
+
+    <section class="search-box">
+        <h3>Search recipes</h3>
+
+        <div class="search-grid">
+            <input id="q" placeholder="Search by ingredient or text">
+
+            <select id="category">
+                <option value="">All categories</option>
+                <option value="Starter">Starter</option>
+                <option value="Main Course">Main Course</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Drink">Drink</option>
+                <option value="Salad">Salad</option>
+            </select>
+
+            <button onclick="search()">Search</button>
+            <button class="secondary" onclick="loadAllRecipes()">Reset</button>
+        </div>
+    </section>
+
+    <section class="results">
+        <h2>All recipes</h2>
+
+        <div id="recipes">
+            <em>Loading recipes...</em>
+        </div>
+    </section>
+
+</div>
+
+<script>
+const CURRENT_USER = localStorage.getItem("username");
+
+function createRecipeCard(r, showRecommendation = false) {
+    const div = document.createElement("div");
+    div.className = "recipe-card";
+
+    let recommendationInfo = "";
+
+    if (showRecommendation) {
+        recommendationInfo = `
+            <span>Recommendation score: ${Math.round((r.like_probability || 0) * 100)}%</span>
+        `;
+    }
+
+    div.innerHTML = `
+        <a href="/recipe/${r._id}" class="recipe-title">
+            ${r.title}
+        </a>
+
+        <div class="recipe-meta">
+            <span class="category">${r.category}</span>
+            <span class="author">by ${r.author}</span>
+            <span>Rating: ${r.average_rating || 0} (${r.rating_count || 0})</span>
+            <span>Views: ${r.views || 0}</span>
+            ${recommendationInfo}
+        </div>
+    `;
+
+    return div;
+}
+
+function renderList(data, containerId, showRecommendation = false, limit = null) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        container.innerHTML = "<em>No recipes found.</em>";
+        return;
+    }
+
+    const visibleData = limit ? data.slice(0, limit) : data;
+
+    visibleData.forEach(r => {
+        container.appendChild(createRecipeCard(r, showRecommendation));
+    });
+}
+
+function renderCarousel(data, containerId, showRecommendation = false, limit = 10) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        container.innerHTML = "<em>No recommendations available.</em>";
+        return;
+    }
+
+    data.slice(0, limit).forEach(r => {
+        const card = createRecipeCard(r, showRecommendation);
+        card.classList.add("carousel-card");
+        container.appendChild(card);
+    });
+}
+
+function scrollCarousel(containerId, direction) {
+    const container = document.getElementById(containerId);
+    const card = container.querySelector(".carousel-card");
+
+    if (!card) return;
+
+    const cardWidth = card.offsetWidth + 16;
+
+    container.scrollBy({
+        left: direction * cardWidth * 3,
+        behavior: "smooth"
+    });
+}
+
+function loadRecommendations() {
+    if (!CURRENT_USER) {
+        document.getElementById("recommendations-carousel").innerHTML =
+            "<em>Login is required for personalized recommendations.</em>";
+        return;
+    }
+
+    fetch(`/recommendations?user=${encodeURIComponent(CURRENT_USER)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.recommendations || data.recommendations.length === 0) {
+                document.getElementById("recommendations-carousel").innerHTML =
+                    "<em>No recommendations available. Train the model first.</em>";
+                return;
+            }
+
+            renderCarousel(data.recommendations, "recommendations-carousel", true, 10);
+        })
+        .catch(err => {
+            document.getElementById("recommendations-carousel").innerHTML =
+                "<em>Error loading recommendations.</em>";
+            console.error(err);
+        });
+}
+
+function loadAllRecipes() {
+    fetch("/recipes")
+        .then(res => res.json())
+        .then(data => {
+            renderList(data, "recipes");
+        })
+        .catch(err => {
+            document.getElementById("recipes").innerHTML =
+                "<em>Error loading recipes.</em>";
+            console.error(err);
+        });
+}
+
+function search() {
+    const q = document.getElementById("q").value.trim();
+    const category = document.getElementById("category").value;
+
+    let url = `/recipes/search?q=${encodeURIComponent(q)}`;
+
+    if (category) {
+        url += `&category=${encodeURIComponent(category)}`;
+    }
+
+    if (CURRENT_USER) {
+        url += `&user=${encodeURIComponent(CURRENT_USER)}`;
+    }
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            renderList(data, "recipes");
+        })
+        .catch(err => {
+            document.getElementById("recipes").innerHTML =
+                "<em>Error searching recipes.</em>";
+            console.error(err);
+        });
+}
+
+loadRecommendations();
+loadAllRecipes();
+</script>
+
+</body>
+</html>

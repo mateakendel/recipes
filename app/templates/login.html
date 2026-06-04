@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+    <div class="page auth-page">
+
+        <div class="auth-card">
+            <h1>Recipes</h1>
+            <h3>Login</h3>
+
+            <input id="username" placeholder="Username">
+            <input id="password" type="password" placeholder="Password">
+
+            <button class="primary full" onclick="login()">Login</button>
+
+            <p class="auth-link">
+                No account?
+                <a href="/register-page">Register</a>
+            </p>
+
+            <p class="auth-link">
+                <a href="/">Back to main page</a>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            })
+                .then(res => {
+                    if (!res.ok) {
+                        alert("Wrong username or password");
+                        throw new Error("Login failed");
+                    }
+                    return res.json();
+                })
+                .then(() => {
+                    localStorage.setItem("username", username);
+                    window.location.href = "/home";
+                })
+                .catch(err => console.error(err));
+        }
+    </script>
+
+</body>
+
+</html>

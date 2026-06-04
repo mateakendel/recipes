@@ -1,0 +1,8 @@
+Flask
+pymongo
+elasticsearch==8.7.0
+redis
+kafka-python
+pandas
+scikit-learn
+joblib

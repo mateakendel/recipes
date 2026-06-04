@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipes Analytics App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="landing-page">
+
+    <nav class="landing-nav">
+        <div class="brand">
+            <div class="brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 5.5C4 4.67 4.67 4 5.5 4H18.5C19.33 4 20 4.67 20 5.5V18.5C20 19.33 19.33 20 18.5 20H5.5C4.67 20 4 19.33 4 18.5V5.5Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M8 8H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 16H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span>Recipes Analytics</span>
+        </div>
+
+        <div class="landing-nav-actions">
+            <a href="/login-page">Login</a>
+            <a class="nav-primary" href="/register-page">Register</a>
+        </div>
+    </nav>
+
+    <main class="landing-hero">
+        <section class="hero-content">
+            <p class="hero-label">Data analytics and machine learning project</p>
+
+            <h1>Recipe recommendation system</h1>
+
+            <p class="hero-description">
+                This application allows users to create, search, rate and view recipes.
+                User activity is collected through Kafka, stored in MongoDB and Redis,
+                indexed with Elasticsearch, and used to train a Naive Bayes model for
+                personalized recipe recommendations.
+            </p>
+
+            <div class="hero-actions">
+                <a class="hero-btn primary" href="/login-page">Login</a>
+                <a class="hero-btn secondary" href="/register-page">Create account</a>
+            </div>
+        </section>
+
+        <section class="hero-panel">
+            <div class="panel-header">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="analytics-card">
+                <div class="analytics-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M4 19H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M8 16V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 16V8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M16 16V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>Analytics pipeline</h3>
+                    <p>Kafka events, MongoDB storage, Redis views and Elasticsearch search.</p>
+                </div>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <strong>Search</strong>
+                    <span>Find recipes by text, ingredient and category.</span>
+                </div>
+
+                <div class="feature-box">
+                    <strong>Ratings</strong>
+                    <span>Users rate recipes from 1 to 5.</span>
+                </div>
+
+                <div class="feature-box">
+                    <strong>Popular recipes</strong>
+                    <span>Ranking is based on views and ratings.</span>
+                </div>
+
+                <div class="feature-box">
+                    <strong>Recommendations</strong>
+                    <span>Naive Bayes predicts recipes users may like.</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+</div>
+
+</body>
+</html>

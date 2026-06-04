@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="page">
+    <div class="page-header">
+        <a class="back-link" href="/all-recipes">⬅ Back to all recipes</a>
+    </div>
+
+    <div class="card recipe-detail">
+
+        <h1 id="title">Loading...</h1>
+
+        <div class="meta">
+            <span><strong>Category:</strong> <span id="category"></span></span>
+            <span><strong>Author:</strong> <span id="author"></span></span>
+            <span><strong>Views:</strong> <span id="views">0</span></span>
+        </div>
+
+        <hr>
+
+        <h3>Ingredients</h3>
+        <ul id="ingredients" class="ingredients-list"></ul>
+
+        <h3>Preparation</h3>
+        <p id="steps" class="steps-text"></p>
+
+        <hr>
+
+        <section class="rating-box">
+            <h3>Rate this recipe</h3>
+
+            <div id="stars" class="stars">
+                <button type="button" onclick="rateRecipe(1)">★</button>
+                <button type="button" onclick="rateRecipe(2)">★</button>
+                <button type="button" onclick="rateRecipe(3)">★</button>
+                <button type="button" onclick="rateRecipe(4)">★</button>
+                <button type="button" onclick="rateRecipe(5)">★</button>
+            </div>
+
+            <p>
+                Average rating:
+                <strong id="average-rating">0</strong> / 5
+            </p>
+
+            <p>
+                Number of ratings:
+                <strong id="rating-count">0</strong>
+            </p>
+
+            <p id="rating-message"></p>
+        </section>
+
+    </div>
+</div>
+
+<script>
+const RECIPE_ID = "{{ recipe_id }}";
+const CURRENT_USER = localStorage.getItem("username");
+
+function loadRecipe() {
+    let url = `/recipes/${RECIPE_ID}`;
+
+    if (CURRENT_USER) {
+        url += `?user=${encodeURIComponent(CURRENT_USER)}`;
+    }
+
+    fetch(url)
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("Recipe not found");
+            }
+            return res.json();
+        })
+        .then(r => {
+            document.getElementById("title").innerText = r.title || "No title";
+            document.getElementById("category").innerText = r.category || "-";
+            document.getElementById("author").innerText = r.author || "-";
+            document.getElementById("steps").innerText = r.steps || "-";
+            document.getElementById("views").innerText = r.views || 0;
+
+            document.getElementById("average-rating").innerText = r.average_rating || 0;
+            document.getElementById("rating-count").innerText = r.rating_count || 0;
+
+            const ul = document.getElementById("ingredients");
+            ul.innerHTML = "";
+
+            if (r.ingredients && r.ingredients.length > 0) {
+                r.ingredients.forEach(i => {
+                    const li = document.createElement("li");
+                    li.innerText = i;
+                    ul.appendChild(li);
+                });
+            } else {
+                ul.innerHTML = "<li>No ingredients</li>";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("title").innerText = "Error loading recipe";
+        });
+}
+
+function rateRecipe(value) {
+    if (!CURRENT_USER) {
+        alert("You must be logged in to rate recipes.");
+        return;
+    }
+
+    document.getElementById("rating-message").innerText = "Saving rating...";
+
+    fetch(`/recipes/${RECIPE_ID}/rate`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: CURRENT_USER,
+            rating: value
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error("Rating failed");
+        }
+        return res.json();
+    })
+    .then(data => {
+        document.getElementById("average-rating").innerText = data.average_rating;
+        document.getElementById("rating-count").innerText = data.rating_count;
+        document.getElementById("rating-message").innerText = "Rating saved.";
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById("rating-message").innerText = "Error saving rating.";
+    });
+}
+
+loadRecipe();
+</script>
+
+</body>
+</html>

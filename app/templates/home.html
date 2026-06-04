@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="page">
+
+    <header class="page-header">
+        <h1>Welcome to Recipes app</h1>
+
+        <div class="header-actions">
+            <a class="back-link" href="/all-recipes">View all recipes</a>
+            <button class="secondary small" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <section class="results">
+        <h2>Popular recipes</h2>
+        <p class="section-description">
+            These recipes are ranked by views and ratings.
+        </p>
+
+        <div class="carousel-wrapper">
+            <button class="carousel-btn left" onclick="scrollCarousel('popular-carousel', -1)">‹</button>
+
+            <div id="popular-carousel" class="recipe-carousel">
+                <em>Loading popular recipes...</em>
+            </div>
+
+            <button class="carousel-btn right" onclick="scrollCarousel('popular-carousel', 1)">›</button>
+        </div>
+    </section>
+
+    <section class="form-card">
+        <h3>Add recipe</h3>
+
+        <div class="form-grid">
+            <input id="title" placeholder="Title">
+
+            <select id="category">
+                <option value="">-- Select category --</option>
+                <option value="Starter">Starter</option>
+                <option value="Main Course">Main Course</option>
+                <option value="Dessert">Dessert</option>
+                <option value="Drink">Drink</option>
+                <option value="Salad">Salad</option>
+            </select>
+
+            <textarea id="ingredients" placeholder="Ingredients (one per line)"></textarea>
+            <textarea id="steps" placeholder="Preparation steps"></textarea>
+        </div>
+
+        <button class="primary" onclick="addRecipe()">Add Recipe</button>
+    </section>
+
+    <section class="results">
+        <h3>My recipes</h3>
+
+        <div id="recipes">
+            <em>Loading recipes...</em>
+        </div>
+    </section>
+
+</div>
+
+<script>
+const CURRENT_USER = localStorage.getItem("username");
+
+if (!CURRENT_USER) {
+    window.location.href = "/";
+}
+
+function createRecipeCard(r) {
+    const div = document.createElement("div");
+    div.className = "recipe-card";
+
+    div.innerHTML = `
+        <a href="/recipe/${r._id}" class="recipe-title">
+            ${r.title}
+        </a>
+
+        <div class="recipe-meta">
+            <span class="category">${r.category}</span>
+            <span class="author">by ${r.author}</span>
+            <span>Rating: ${r.average_rating || 0} (${r.rating_count || 0})</span>
+            <span>Views: ${r.views || 0}</span>
+        </div>
+    `;
+
+    return div;
+}
+
+function renderCarousel(data, containerId, limit = 10) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        container.innerHTML = "<em>No popular recipes yet.</em>";
+        return;
+    }
+
+    data.slice(0, limit).forEach(r => {
+        const card = createRecipeCard(r);
+        card.classList.add("carousel-card");
+        container.appendChild(card);
+    });
+}
+
+function scrollCarousel(containerId, direction) {
+    const container = document.getElementById(containerId);
+    const card = container.querySelector(".carousel-card");
+
+    if (!card) return;
+
+    const cardWidth = card.offsetWidth + 16;
+
+    container.scrollBy({
+        left: direction * cardWidth * 3,
+        behavior: "smooth"
+    });
+}
+
+function loadPopularRecipes() {
+    fetch("/recipes/popular")
+        .then(res => res.json())
+        .then(data => {
+            renderCarousel(data, "popular-carousel", 10);
+        })
+        .catch(err => {
+            document.getElementById("popular-carousel").innerHTML =
+                "<em>Error loading popular recipes.</em>";
+            console.error(err);
+        });
+}
+
+function addRecipe() {
+    fetch("/recipes", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            title: document.getElementById("title").value,
+            ingredients: document.getElementById("ingredients").value.split("\n"),
+            steps: document.getElementById("steps").value,
+            category: document.getElementById("category").value,
+            author: CURRENT_USER
+        })
+    })
+    .then(() => {
+        clearForm();
+        loadMyRecipes();
+        loadPopularRecipes();
+    });
+}
+
+function loadMyRecipes() {
+    fetch(`/recipes?mode=mine&user=${encodeURIComponent(CURRENT_USER)}`)
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("recipes");
+            container.innerHTML = "";
+
+            if (data.length === 0) {
+                container.innerHTML = "<em>No recipes yet</em>";
+                return;
+            }
+
+            data.forEach(r => {
+                container.appendChild(createRecipeCard(r));
+            });
+        })
+        .catch(err => {
+            document.getElementById("recipes").innerHTML =
+                "<em>Error loading recipes.</em>";
+            console.error(err);
+        });
+}
+
+function clearForm() {
+    document.getElementById("title").value = "";
+    document.getElementById("ingredients").value = "";
+    document.getElementById("steps").value = "";
+    document.getElementById("category").value = "";
+}
+
+function logout() {
+    localStorage.removeItem("username");
+    window.location.href = "/";
+}
+
+loadPopularRecipes();
+loadMyRecipes();
+</script>
+
+</body>
+</html>
